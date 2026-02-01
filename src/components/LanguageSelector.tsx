@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, forwardRef } from "react";
 import { Check, ChevronDown, Search, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -179,17 +179,17 @@ export function LanguageSelector({
   );
 }
 
-function LanguageItem({
-  language,
-  isSelected,
-  onSelect,
-}: {
-  language: Language;
-  isSelected: boolean;
-  onSelect: () => void;
-}) {
+const LanguageItem = forwardRef<
+  HTMLDivElement,
+  {
+    language: Language;
+    isSelected: boolean;
+    onSelect: () => void;
+  }
+>(({ language, isSelected, onSelect }, ref) => {
   return (
     <CommandItem
+      ref={ref}
       value={`${language.code}-${language.name}-${language.nativeName}`}
       onSelect={onSelect}
       className="flex items-center gap-3 py-2.5"
@@ -207,4 +207,5 @@ function LanguageItem({
       />
     </CommandItem>
   );
-}
+});
+LanguageItem.displayName = "LanguageItem";
