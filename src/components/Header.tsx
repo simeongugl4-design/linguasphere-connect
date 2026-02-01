@@ -1,4 +1,4 @@
-import { Globe, MessageCircle, Settings, Menu } from "lucide-react";
+import { Globe, MessageCircle, Camera, Users, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -6,11 +6,21 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { OfflineIndicator } from "@/components/OfflineIndicator";
+
+type TabType = "translate" | "chat" | "camera" | "conversation";
 
 interface HeaderProps {
-  activeTab: "translate" | "chat";
-  onTabChange: (tab: "translate" | "chat") => void;
+  activeTab: TabType;
+  onTabChange: (tab: TabType) => void;
 }
+
+const tabs: { id: TabType; label: string; icon: React.ReactNode }[] = [
+  { id: "translate", label: "Translate", icon: <Globe className="h-4 w-4" /> },
+  { id: "camera", label: "Camera", icon: <Camera className="h-4 w-4" /> },
+  { id: "conversation", label: "Conversation", icon: <Users className="h-4 w-4" /> },
+  { id: "chat", label: "AI Assistant", icon: <MessageCircle className="h-4 w-4" /> },
+];
 
 export function Header({ activeTab, onTabChange }: HeaderProps) {
   return (
@@ -32,58 +42,50 @@ export function Header({ activeTab, onTabChange }: HeaderProps) {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-1 p-1 rounded-full bg-muted/50">
-          <Button
-            variant="ghost"
-            onClick={() => onTabChange("translate")}
-            className={cn(
-              "rounded-full px-6 transition-all",
-              activeTab === "translate" && "bg-card shadow-soft"
-            )}
-          >
-            <Globe className="h-4 w-4 mr-2" />
-            Translate
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => onTabChange("chat")}
-            className={cn(
-              "rounded-full px-6 transition-all",
-              activeTab === "chat" && "bg-card shadow-soft"
-            )}
-          >
-            <MessageCircle className="h-4 w-4 mr-2" />
-            AI Assistant
-          </Button>
+          {tabs.map((tab) => (
+            <Button
+              key={tab.id}
+              variant="ghost"
+              onClick={() => onTabChange(tab.id)}
+              className={cn(
+                "rounded-full px-4 transition-all",
+                activeTab === tab.id && "bg-card shadow-soft"
+              )}
+            >
+              {tab.icon}
+              <span className="ml-2">{tab.label}</span>
+            </Button>
+          ))}
         </nav>
 
-        {/* Mobile Menu */}
-        <Sheet>
-          <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="right" className="w-72">
-            <div className="flex flex-col gap-4 mt-8">
-              <Button
-                variant={activeTab === "translate" ? "default" : "ghost"}
-                onClick={() => onTabChange("translate")}
-                className="justify-start"
-              >
-                <Globe className="h-4 w-4 mr-3" />
-                Translate
+        {/* Actions */}
+        <div className="flex items-center gap-2">
+          <OfflineIndicator />
+          
+          {/* Mobile Menu */}
+          <Sheet>
+            <SheetTrigger asChild className="md:hidden">
+              <Button variant="ghost" size="icon">
+                <Menu className="h-5 w-5" />
               </Button>
-              <Button
-                variant={activeTab === "chat" ? "default" : "ghost"}
-                onClick={() => onTabChange("chat")}
-                className="justify-start"
-              >
-                <MessageCircle className="h-4 w-4 mr-3" />
-                AI Assistant
-              </Button>
-            </div>
-          </SheetContent>
-        </Sheet>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-72">
+              <div className="flex flex-col gap-4 mt-8">
+                {tabs.map((tab) => (
+                  <Button
+                    key={tab.id}
+                    variant={activeTab === tab.id ? "default" : "ghost"}
+                    onClick={() => onTabChange(tab.id)}
+                    className="justify-start"
+                  >
+                    {tab.icon}
+                    <span className="ml-3">{tab.label}</span>
+                  </Button>
+                ))}
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
     </header>
   );
