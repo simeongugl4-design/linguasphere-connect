@@ -4,8 +4,9 @@ import { TranslationView } from "@/components/TranslationView";
 import { ChatInterface } from "@/components/ChatInterface";
 import { CameraOCR } from "@/components/CameraOCR";
 import { ConversationMode } from "@/components/ConversationMode";
+import { SocialLayout } from "@/components/social/SocialLayout";
 
-type TabType = "translate" | "chat" | "camera" | "conversation";
+type TabType = "translate" | "chat" | "camera" | "conversation" | "social";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<TabType>("translate");
@@ -58,6 +59,8 @@ const Index = () => {
             <ConversationMode />
           </div>
         );
+      case "social":
+        return <SocialLayout />;
       case "chat":
         return (
           <div className="animate-fade-in-up">
@@ -68,6 +71,16 @@ const Index = () => {
         return null;
     }
   };
+
+  // Social tab has its own layout with header/footer
+  if (activeTab === "social") {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header activeTab={activeTab} onTabChange={setActiveTab} />
+        <SocialLayout />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
