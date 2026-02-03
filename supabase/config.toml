@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.ocr-translate]
 verify_jwt = false
+
+[functions.moderate]
+verify_jwt = false
