@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Image, Video, Mic, MapPin, Hash, X, Loader2, Send } from "lucide-react";
+import { VoiceRecorder } from "./VoiceRecorder";
 
 interface CreatePostProps {
   onPostCreated?: () => void;
@@ -20,8 +21,11 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const [location, setLocation] = useState("");
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [mediaPreview, setMediaPreview] = useState<string[]>([]);
-  const [mediaType, setMediaType] = useState<"image" | "video" | null>(null);
+  const [mediaType, setMediaType] = useState<"image" | "video" | "voice" | null>(null);
   const [posting, setPosting] = useState(false);
+  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
+  const [voiceBlob, setVoiceBlob] = useState<Blob | null>(null);
+  const [voiceUrl, setVoiceUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, type: "image" | "video") => {
@@ -45,21 +49,66 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
     setMediaFiles([]);
     setMediaPreview([]);
     setMediaType(null);
+    setVoiceBlob(null);
+    setVoiceUrl(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
 
+  const handleVoiceRecordingComplete = (blob: Blob, url: string) => {
+    setVoiceBlob(blob);
+    setVoiceUrl(url);
+    setMediaType("voice");
+    setShowVoiceRecorder(false);
+  };
+
   const handleSubmit = async () => {
     if (!user) return;
-    if (!content.trim() && mediaFiles.length === 0) {
+    if (!content.trim() && mediaFiles.length === 0 && !voiceBlob) {
       toast.error("Please add some content or media");
       return;
     }
 
     setPosting(true);
     try {
+      // Run content moderation if there's text
+      if (content.trim()) {
+        const { data: moderationResult } = await supabase.functions.invoke("moderate", {
+          body: { content: content.trim(), type: "post" },
+        });
+
+        if (moderationResult && !moderationResult.safe) {
+          toast.error(`Content flagged: ${moderationResult.reason || "Please review your post"}`);
+          setPosting(false);
+          return;
+        }
+      }
+
       let mediaUrls: string[] = [];
+      let isVoicePost = false;
+      let voiceTranscription: string | null = null;
+
+      // Upload voice recording if present
+      if (voiceBlob) {
+        const fileName = `${user.id}/${Date.now()}.webm`;
+        const { error: uploadError } = await supabase.storage
+          .from("social-media")
+          .upload(fileName, voiceBlob);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from("social-media")
+          .getPublicUrl(fileName);
+
+        mediaUrls.push(publicUrl);
+        isVoicePost = true;
+
+        // Transcribe the audio using translate function with transcription mode
+        // For now, just mark it as a voice post
+        voiceTranscription = content.trim() || "Voice message";
+      }
 
       // Upload media if present
       if (mediaFiles.length > 0) {
@@ -93,9 +142,11 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         content: content.trim() || null,
         original_language: profile?.preferred_language || "en",
         media_urls: mediaUrls.length > 0 ? mediaUrls : null,
-        media_type: mediaType,
+        media_type: isVoicePost ? "voice" : mediaType,
         location: location.trim() || null,
         hashtags: parsedHashtags.length > 0 ? parsedHashtags : null,
+        is_voice_post: isVoicePost,
+        voice_transcription: voiceTranscription,
       });
 
       if (postError) throw postError;
@@ -132,6 +183,29 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
             className="resize-none"
           />
         </div>
+
+        {/* Voice Recorder */}
+        {showVoiceRecorder && (
+          <VoiceRecorder
+            onRecordingComplete={handleVoiceRecordingComplete}
+            onCancel={() => setShowVoiceRecorder(false)}
+          />
+        )}
+
+        {/* Voice Preview */}
+        {voiceUrl && !showVoiceRecorder && (
+          <div className="relative bg-muted/50 rounded-lg p-4">
+            <audio src={voiceUrl} controls className="w-full" />
+            <Button
+              variant="destructive"
+              size="icon"
+              className="absolute top-2 right-2 h-8 w-8"
+              onClick={removeMedia}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
 
         {/* Media preview */}
         {mediaPreview.length > 0 && (
@@ -196,7 +270,12 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
             <Video className="h-4 w-4 mr-2" />
             Video
           </Button>
-          <Button variant="outline" size="sm" disabled>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowVoiceRecorder(true)}
+            disabled={showVoiceRecorder || voiceBlob !== null}
+          >
             <Mic className="h-4 w-4 mr-2" />
             Voice
           </Button>
@@ -233,7 +312,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         <Button
           className="w-full"
           onClick={handleSubmit}
-          disabled={posting || (!content.trim() && mediaFiles.length === 0)}
+          disabled={posting || (!content.trim() && mediaFiles.length === 0 && !voiceBlob)}
         >
           {posting ? (
             <Loader2 className="h-4 w-4 animate-spin mr-2" />

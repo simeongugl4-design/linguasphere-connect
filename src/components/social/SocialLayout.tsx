@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { SocialFeed } from "./SocialFeed";
 import { CreatePost } from "./CreatePost";
-import { SocialChat } from "./SocialChat";
+import { DirectMessages } from "./DirectMessages";
 import { SocialProfile } from "./SocialProfile";
 import { SocialDiscover } from "./SocialDiscover";
 import { AuthModal } from "./AuthModal";
+import { NotificationsBell } from "./NotificationsBell";
 import { useAuth } from "@/hooks/useAuth";
 
 type SocialTab = "feed" | "create" | "chat" | "profile" | "discover";
@@ -43,7 +44,7 @@ export function SocialLayout() {
       case "create":
         return user ? <CreatePost onPostCreated={() => setActiveTab("feed")} /> : null;
       case "chat":
-        return user ? <SocialChat /> : null;
+        return user ? <DirectMessages /> : null;
       case "profile":
         return user ? <SocialProfile /> : null;
       default:
@@ -59,12 +60,15 @@ export function SocialLayout() {
           <h2 className="font-display font-semibold text-sm tracking-tight">
             LINGUAONE <span className="text-gradient">SOCIAL</span>
           </h2>
-          {!user && !loading && (
-            <Button variant="outline" size="sm" onClick={() => setShowAuth(true)}>
-              <LogIn className="h-4 w-4 mr-2" />
-              Sign In
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {user && <NotificationsBell />}
+            {!user && !loading && (
+              <Button variant="outline" size="sm" onClick={() => setShowAuth(true)}>
+                <LogIn className="h-4 w-4 mr-2" />
+                Sign In
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 

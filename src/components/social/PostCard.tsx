@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Heart, MessageCircle, Share2, Bookmark, Globe, Volume2 } from "lucide-react";
+import { Heart, MessageCircle, Share2, Bookmark, Globe, Volume2, Play, Pause } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { CommentsSheet } from "./CommentsSheet";
+import { useRef } from "react";
 
 interface PostCardProps {
   post: {
@@ -45,6 +46,8 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
   const [translatedContent, setTranslatedContent] = useState<string | null>(null);
   const [translating, setTranslating] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [isPlayingVoice, setIsPlayingVoice] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
     if (user) {
@@ -177,6 +180,17 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
     toast.success("Link copied to clipboard");
   };
 
+  const toggleVoicePlay = () => {
+    if (audioRef.current) {
+      if (isPlayingVoice) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play();
+      }
+      setIsPlayingVoice(!isPlayingVoice);
+    }
+  };
+
   const displayName = post.profiles?.display_name || post.profiles?.username || "Anonymous";
   const initials = displayName.substring(0, 2).toUpperCase();
 
@@ -240,8 +254,43 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
             </div>
           )}
 
-          {/* Voice post indicator */}
-          {post.is_voice_post && (
+          {/* Voice post player */}
+          {post.is_voice_post && post.media_urls && post.media_urls.length > 0 && (
+            <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-3">
+              <Button
+                variant="secondary"
+                size="icon"
+                className="h-10 w-10 rounded-full"
+                onClick={toggleVoicePlay}
+              >
+                {isPlayingVoice ? (
+                  <Pause className="h-5 w-5" />
+                ) : (
+                  <Play className="h-5 w-5" />
+                )}
+              </Button>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <Volume2 className="h-4 w-4 text-accent" />
+                  <span className="text-sm font-medium">Voice Message</span>
+                </div>
+                {post.voice_transcription && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {post.voice_transcription}
+                  </p>
+                )}
+              </div>
+              <audio
+                ref={audioRef}
+                src={post.media_urls[0]}
+                onEnded={() => setIsPlayingVoice(false)}
+                className="hidden"
+              />
+            </div>
+          )}
+
+          {/* Voice post indicator (for posts without audio URL) */}
+          {post.is_voice_post && (!post.media_urls || post.media_urls.length === 0) && (
             <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-3">
               <Volume2 className="h-5 w-5 text-accent" />
               <span className="text-sm text-muted-foreground">Voice post</span>

@@ -6,12 +6,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { User, Settings, LogOut, Globe, MapPin, Loader2, Camera } from "lucide-react";
+import { User, Settings, LogOut, Globe, MapPin, Loader2, Camera, Bookmark, Grid } from "lucide-react";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { countryLanguageMap } from "@/lib/countryLanguages";
+import { SavedPosts } from "./SavedPosts";
+import { PostCard } from "./PostCard";
 import {
   Select,
   SelectContent,
@@ -34,6 +37,7 @@ export function SocialProfile() {
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [postCount, setPostCount] = useState(0);
+  const [userPosts, setUserPosts] = useState<any[]>([]);
 
   useEffect(() => {
     if (profile) {
@@ -56,12 +60,24 @@ export function SocialProfile() {
     const [followers, following, posts] = await Promise.all([
       supabase.from("follows").select("id", { count: "exact" }).eq("following_id", user.id),
       supabase.from("follows").select("id", { count: "exact" }).eq("follower_id", user.id),
-      supabase.from("posts").select("id", { count: "exact" }).eq("user_id", user.id),
+      supabase.from("posts").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(20),
     ]);
 
     setFollowerCount(followers.count || 0);
     setFollowingCount(following.count || 0);
-    setPostCount(posts.count || 0);
+    setPostCount(posts.data?.length || 0);
+
+    // Add profile to posts
+    const postsWithProfile = (posts.data || []).map((post) => ({
+      ...post,
+      profiles: {
+        username: profile?.username,
+        display_name: profile?.display_name,
+        avatar_url: profile?.avatar_url,
+        country_flag: profile?.country_flag,
+      },
+    }));
+    setUserPosts(postsWithProfile);
   };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -182,6 +198,36 @@ export function SocialProfile() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Tabs for Posts and Saved */}
+      <Tabs defaultValue="posts" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="posts" className="flex items-center gap-2">
+            <Grid className="h-4 w-4" />
+            Posts
+          </TabsTrigger>
+          <TabsTrigger value="saved" className="flex items-center gap-2">
+            <Bookmark className="h-4 w-4" />
+            Saved
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="posts" className="mt-4 space-y-4">
+          {userPosts.length === 0 ? (
+            <Card>
+              <CardContent className="text-center py-8 text-muted-foreground">
+                <p>No posts yet</p>
+              </CardContent>
+            </Card>
+          ) : (
+            userPosts.map((post) => (
+              <PostCard key={post.id} post={post} onUpdate={fetchStats} />
+            ))
+          )}
+        </TabsContent>
+        <TabsContent value="saved" className="mt-4">
+          <SavedPosts />
+        </TabsContent>
+      </Tabs>
 
       {/* Edit Profile */}
       <Card>
