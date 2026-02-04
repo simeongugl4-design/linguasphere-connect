@@ -104,6 +104,14 @@ export const languages: Language[] = [
   { code: "ky", name: "Kyrgyz", nativeName: "Кыргызча", flag: "🇰🇬", region: "Asia" },
   { code: "tg", name: "Tajik", nativeName: "Тоҷикӣ", flag: "🇹🇯", region: "Asia" },
   { code: "tk", name: "Turkmen", nativeName: "Türkmen", flag: "🇹🇲", region: "Asia" },
+  // Pacific Languages
+  { code: "tpi", name: "Tok Pisin", nativeName: "Tok Pisin", flag: "🇵🇬", region: "Oceania" },
+  { code: "bi", name: "Bislama", nativeName: "Bislama", flag: "🇻🇺", region: "Oceania" },
+  { code: "fj", name: "Fijian", nativeName: "Vosa Vakaviti", flag: "🇫🇯", region: "Oceania" },
+  { code: "sm", name: "Samoan", nativeName: "Gagana Sāmoa", flag: "🇼🇸", region: "Oceania" },
+  { code: "to", name: "Tongan", nativeName: "Lea Faka-Tonga", flag: "🇹🇴", region: "Oceania" },
+  { code: "mi", name: "Māori", nativeName: "Te Reo Māori", flag: "🇳🇿", region: "Oceania" },
+  { code: "haw", name: "Hawaiian", nativeName: "ʻŌlelo Hawaiʻi", flag: "🇺🇸", region: "Oceania" },
 ];
 
 export const getLanguageByCode = (code: string): Language | undefined => {
