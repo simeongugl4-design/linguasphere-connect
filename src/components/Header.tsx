@@ -1,4 +1,4 @@
-import { Globe, MessageCircle, Camera, Users, Menu, Share2 } from "lucide-react";
+import { Globe, MessageCircle, Camera, Users, Menu, Share2, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -8,7 +8,7 @@ import {
 import { cn } from "@/lib/utils";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 
-type TabType = "translate" | "chat" | "camera" | "conversation" | "social";
+type TabType = "translate" | "chat" | "camera" | "conversation" | "social" | "home";
 
 interface HeaderProps {
   activeTab: TabType;
@@ -16,6 +16,7 @@ interface HeaderProps {
 }
 
 const tabs: { id: TabType; label: string; icon: React.ReactNode }[] = [
+  { id: "home", label: "Home", icon: <Home className="h-4 w-4" /> },
   { id: "translate", label: "Translate", icon: <Globe className="h-4 w-4" /> },
   { id: "camera", label: "Camera", icon: <Camera className="h-4 w-4" /> },
   { id: "conversation", label: "Conversation", icon: <Users className="h-4 w-4" /> },
