@@ -1,0 +1,100 @@
+{
+  "name": "LINGUAONE - AI Translation & Social Platform",
+  "short_name": "LINGUAONE",
+  "description": "Break language barriers with AI-powered translations across 100+ languages. Connect globally through our social platform with real-time translation.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "window-controls-overlay"],
+  "orientation": "any",
+  "theme_color": "#1e3a5f",
+  "background_color": "#f5f7fa",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["social", "utilities", "productivity", "education"],
+  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "LINGUAONE Translation Interface"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "LINGUAONE Mobile View"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Translate Text",
+      "short_name": "Translate",
+      "description": "Open the translation tool",
+      "url": "/?tab=translate",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Camera OCR",
+      "short_name": "Camera",
+      "description": "Translate text from camera",
+      "url": "/?tab=camera",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Social Feed",
+      "short_name": "Social",
+      "description": "Browse global social feed",
+      "url": "/?tab=social",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ],
+  "share_target": {
+    "action": "/",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "related_applications": [],
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "id": "linguaone-ai-translator"
+}
