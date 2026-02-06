@@ -64,7 +64,7 @@
    { code: "lo", name: "Lao", nativeName: "ລາວ", flag: "🇱🇦", region: "Asia" },
    { code: "my", name: "Burmese", nativeName: "မြန်မာဘာသာ", flag: "🇲🇲", region: "Asia" },
    { code: "ka", name: "Georgian", nativeName: "ქართული", flag: "🇬🇪", region: "Europe" },
-   { code: "hy", name: "Armenian", nativeName: "Հայdelays", flag: "🇦🇲", region: "Asia" },
+   { code: "hy", name: "Armenian", nativeName: "Հայերեն", flag: "🇦🇲", region: "Asia" },
    { code: "az", name: "Azerbaijani", nativeName: "Azərbaycan", flag: "🇦🇿", region: "Asia" },
    { code: "kk", name: "Kazakh", nativeName: "Қазақ", flag: "🇰🇿", region: "Asia" },
    { code: "uz", name: "Uzbek", nativeName: "O'zbek", flag: "🇺🇿", region: "Asia" },
