@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 type TabType = "translate" | "chat" | "camera" | "conversation" | "social" | "home";
 
@@ -62,6 +63,7 @@ export function Header({ activeTab, onTabChange }: HeaderProps) {
 
         {/* Actions */}
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <OfflineIndicator />
           
           {/* Mobile Menu */}
