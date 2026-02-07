@@ -1,6 +1,8 @@
+import { useCallback } from "react";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { TranslationPanel } from "@/components/TranslationPanel";
 import { SwapButton } from "@/components/SwapButton";
+import { CountrySearch } from "@/components/CountrySearch";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
 import { getLanguageByCode } from "@/lib/languages";
@@ -23,14 +25,27 @@ export function TranslationView() {
     sourceLanguage
   );
 
-  const sourceLang = sourceLanguage === "auto" 
-    ? { name: "Auto Detect", flag: "🌍", code: "auto" }
-    : getLanguageByCode(sourceLanguage) || { name: "Unknown", flag: "❓", code: sourceLanguage };
-  
+  const handleCountrySelect = useCallback(
+    (countryData: { country: string; language: string; code: string; flag: string }) => {
+      setSourceLanguage(countryData.code);
+    },
+    [setSourceLanguage]
+  );
+
+  const sourceLang =
+    sourceLanguage === "auto"
+      ? { name: "Auto Detect", flag: "🌍", code: "auto" }
+      : getLanguageByCode(sourceLanguage) || { name: "Unknown", flag: "❓", code: sourceLanguage };
+
   const targetLang = getLanguageByCode(targetLanguage) || { name: "Unknown", flag: "❓", code: targetLanguage };
 
   return (
     <div className="w-full max-w-5xl mx-auto">
+      {/* Country Search Bar */}
+      <div className="mb-6">
+        <CountrySearch onCountrySelect={handleCountrySelect} />
+      </div>
+
       {/* Language Selectors */}
       <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
         <div className="flex-1 w-full">
@@ -41,28 +56,18 @@ export function TranslationView() {
             showAutoDetect
           />
         </div>
-        
+
         <div className="hidden sm:flex items-center justify-center py-6">
-          <SwapButton
-            onClick={swapLanguages}
-            disabled={sourceLanguage === "auto"}
-          />
+          <SwapButton onClick={swapLanguages} disabled={sourceLanguage === "auto"} />
         </div>
 
         <div className="flex-1 w-full">
-          <LanguageSelector
-            value={targetLanguage}
-            onChange={setTargetLanguage}
-            label="To"
-          />
+          <LanguageSelector value={targetLanguage} onChange={setTargetLanguage} label="To" />
         </div>
 
         {/* Mobile Swap Button */}
         <div className="sm:hidden">
-          <SwapButton
-            onClick={swapLanguages}
-            disabled={sourceLanguage === "auto"}
-          />
+          <SwapButton onClick={swapLanguages} disabled={sourceLanguage === "auto"} />
         </div>
       </div>
 
@@ -78,7 +83,7 @@ export function TranslationView() {
           onVoiceInput={toggleRecording}
           isRecording={isRecording}
         />
-        
+
         <TranslationPanel
           type="target"
           text={translatedText}
@@ -97,7 +102,7 @@ export function TranslationView() {
           Real-time translation
         </span>
         <span>•</span>
-        <span>100+ languages</span>
+        <span>195+ countries</span>
         <span>•</span>
         <span>Voice input</span>
         <span>•</span>
