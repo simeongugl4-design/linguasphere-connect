@@ -1,4 +1,4 @@
-import { Globe, MessageCircle, Camera, Users, Menu, Share2, Home } from "lucide-react";
+import { Globe, MessageCircle, Camera, Users, Menu, Share2, Home, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -8,6 +8,7 @@ import {
 import { cn } from "@/lib/utils";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { NotificationsBell } from "@/components/social/NotificationsBell";
 
 type TabType = "translate" | "chat" | "camera" | "conversation" | "social" | "home";
 
@@ -28,53 +29,54 @@ const tabs: { id: TabType; label: string; icon: React.ReactNode }[] = [
 export function Header({ activeTab, onTabChange }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
+      <div className="container flex h-14 sm:h-16 items-center justify-between px-3 sm:px-6">
         {/* Logo */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <div className="relative">
             <div className="absolute inset-0 rounded-full bg-accent/20 animate-pulse-ring" />
-            <div className="relative h-10 w-10 rounded-full gradient-primary flex items-center justify-center shadow-glow">
-              <Globe className="h-5 w-5 text-primary-foreground" />
+            <div className="relative h-8 w-8 sm:h-10 sm:w-10 rounded-full gradient-primary flex items-center justify-center shadow-glow">
+              <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-primary-foreground" />
             </div>
           </div>
           <div className="flex flex-col">
-            <span className="font-display font-bold text-lg tracking-tight">LINGUAONE</span>
-            <span className="text-[10px] text-accent font-medium tracking-widest -mt-1">AI TRANSLATOR</span>
+            <span className="font-display font-bold text-sm sm:text-lg tracking-tight">LINGUAONE</span>
+            <span className="text-[8px] sm:text-[10px] text-accent font-medium tracking-widest -mt-1">AI TRANSLATOR</span>
           </div>
         </div>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-1 p-1 rounded-full bg-muted/50">
+        <nav className="hidden lg:flex items-center gap-1 p-1 rounded-full bg-muted/50">
           {tabs.map((tab) => (
             <Button
               key={tab.id}
               variant="ghost"
               onClick={() => onTabChange(tab.id)}
               className={cn(
-                "rounded-full px-4 transition-all",
+                "rounded-full px-3 xl:px-4 transition-all text-xs xl:text-sm",
                 activeTab === tab.id && "bg-card shadow-soft"
               )}
             >
               {tab.icon}
-              <span className="ml-2">{tab.label}</span>
+              <span className="ml-1.5 xl:ml-2">{tab.label}</span>
             </Button>
           ))}
         </nav>
 
         {/* Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
+          <NotificationsBell />
           <ThemeToggle />
           <OfflineIndicator />
           
           {/* Mobile Menu */}
           <Sheet>
-            <SheetTrigger asChild className="md:hidden">
-              <Button variant="ghost" size="icon">
-                <Menu className="h-5 w-5" />
+            <SheetTrigger asChild className="lg:hidden">
+              <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9">
+                <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-72">
-              <div className="flex flex-col gap-4 mt-8">
+            <SheetContent side="right" className="w-64 sm:w-72">
+              <div className="flex flex-col gap-3 mt-8">
                 {tabs.map((tab) => (
                   <Button
                     key={tab.id}
