@@ -30,7 +30,6 @@ export function TranslationView() {
   const { detectedCountry } = useCountryDetection();
   const [autoApplied, setAutoApplied] = useState(false);
 
-  // Auto-apply detected country language
   useEffect(() => {
     if (detectedCountry && !autoApplied) {
       setSourceLanguage(detectedCountry.code);
@@ -53,22 +52,22 @@ export function TranslationView() {
   const targetLang = getLanguageByCode(targetLanguage) || { name: "Unknown", flag: "❓", code: targetLanguage };
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4">
+    <div className="w-full max-w-5xl mx-auto px-3 sm:px-4">
       {/* Detected Country Banner */}
       {detectedCountry && (
-        <div className="mb-4 flex items-center gap-2 justify-center text-sm text-muted-foreground animate-fade-in-up">
-          <MapPin className="h-3.5 w-3.5" />
+        <div className="mb-3 flex items-center gap-2 justify-center text-xs sm:text-sm text-muted-foreground animate-fade-in-up">
+          <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
           <span>Detected: {detectedCountry.flag} {detectedCountry.country} — {detectedCountry.language}</span>
         </div>
       )}
 
       {/* Country Search Bar */}
-      <div className="mb-4 sm:mb-6">
+      <div className="mb-3 sm:mb-6">
         <CountrySearch onCountrySelect={handleCountrySelect} />
       </div>
 
-      {/* Language Selectors */}
-      <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+      {/* Language Selectors - stacked on mobile */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 mb-3 sm:mb-6">
         <div className="flex-1 w-full">
           <LanguageSelector
             value={sourceLanguage}
@@ -78,8 +77,8 @@ export function TranslationView() {
           />
         </div>
 
-        <div className="flex items-center justify-center py-2 sm:py-6">
-          <SwapButton onClick={swapLanguages} disabled={sourceLanguage === "auto"} />
+        <div className="flex items-center justify-center py-1 sm:py-6">
+          <SwapButton onClick={swapLanguages} disabled={sourceLanguage === "auto"} className="h-10 w-10 sm:h-12 sm:w-12" />
         </div>
 
         <div className="flex-1 w-full">
@@ -87,8 +86,8 @@ export function TranslationView() {
         </div>
       </div>
 
-      {/* Translation Panels */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+      {/* Translation Panels - stacked */}
+      <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-2">
         <TranslationPanel
           type="source"
           text={sourceText}
@@ -112,17 +111,15 @@ export function TranslationView() {
       </div>
 
       {/* Features hint */}
-      <div className="mt-4 sm:mt-6 flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
-        <span className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-accent animate-pulse" />
-          Real-time translation
+      <div className="mt-3 sm:mt-6 flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-[10px] sm:text-sm text-muted-foreground">
+        <span className="flex items-center gap-1">
+          <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-accent animate-pulse" />
+          Instant translation
         </span>
-        <span className="hidden sm:inline">•</span>
+        <span>•</span>
         <span>195+ countries</span>
-        <span className="hidden sm:inline">•</span>
+        <span>•</span>
         <span>Voice input</span>
-        <span className="hidden sm:inline">•</span>
-        <span>AI-powered</span>
       </div>
     </div>
   );
