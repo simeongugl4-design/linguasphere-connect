@@ -62,7 +62,7 @@ export function useTranslation() {
 
     debounceRef.current = setTimeout(() => {
       translate(sourceText, sourceLanguage, targetLanguage);
-    }, 500);
+    }, 150);
 
     return () => {
       if (debounceRef.current) {

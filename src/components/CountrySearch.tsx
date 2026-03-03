@@ -15,26 +15,20 @@ const countries = Object.entries(countryLanguageMap).map(([country, data]) => ({
 }));
 
 const CountryItem = memo(({
-  country,
-  language,
-  flag,
-  onSelect,
+  country, language, flag, onSelect,
 }: {
-  country: string;
-  language: string;
-  flag: string;
-  onSelect: () => void;
+  country: string; language: string; flag: string; onSelect: () => void;
 }) => (
   <button
     onClick={onSelect}
-    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-accent/10 transition-colors text-left rounded-lg group"
+    className="w-full flex items-center gap-2 sm:gap-3 px-3 py-2.5 sm:px-4 sm:py-3 hover:bg-accent/10 active:bg-accent/20 transition-colors text-left rounded-lg group"
   >
-    <span className="text-2xl group-hover:scale-110 transition-transform">{flag}</span>
+    <span className="text-xl sm:text-2xl">{flag}</span>
     <div className="flex flex-col min-w-0 flex-1">
-      <span className="font-medium text-sm text-foreground truncate">{country}</span>
-      <span className="text-xs text-muted-foreground">{language}</span>
+      <span className="font-medium text-xs sm:text-sm text-foreground truncate">{country}</span>
+      <span className="text-[10px] sm:text-xs text-muted-foreground">{language}</span>
     </div>
-    <MapPin className="h-3.5 w-3.5 text-muted-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity" />
+    <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-muted-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity" />
   </button>
 ));
 CountryItem.displayName = "CountryItem";
@@ -48,10 +42,7 @@ export const CountrySearch = memo(function CountrySearch({ onCountrySelect, clas
     if (!query.trim()) return countries;
     const q = query.toLowerCase();
     return countries.filter(
-      (c) =>
-        c.country.toLowerCase().includes(q) ||
-        c.language.toLowerCase().includes(q) ||
-        c.code.toLowerCase().includes(q)
+      (c) => c.country.toLowerCase().includes(q) || c.language.toLowerCase().includes(q) || c.code.toLowerCase().includes(q)
     );
   }, [query]);
 
@@ -73,33 +64,28 @@ export const CountrySearch = memo(function CountrySearch({ onCountrySelect, clas
 
   return (
     <div className={cn("relative w-full", className)}>
-      {/* Selected country badge */}
       {selectedCountry && (
         <div className="flex items-center gap-2 mb-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/15 border border-accent/30 text-sm">
+          <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-accent/15 border border-accent/30 text-xs sm:text-sm">
             <span>{countryLanguageMap[selectedCountry]?.flag}</span>
             <span className="font-medium text-foreground">{selectedCountry}</span>
             <span className="text-muted-foreground">·</span>
             <span className="text-muted-foreground">{countryLanguageMap[selectedCountry]?.language}</span>
-            <button onClick={handleClear} className="ml-1 hover:text-destructive transition-colors">
-              <X className="h-3.5 w-3.5" />
+            <button onClick={handleClear} className="ml-0.5 hover:text-destructive transition-colors">
+              <X className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             </button>
           </div>
         </div>
       )}
 
-      {/* Search input */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
         <Input
-          placeholder="Search your country to translate..."
+          placeholder="Search your country..."
           value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setIsOpen(true);
-          }}
+          onChange={(e) => { setQuery(e.target.value); setIsOpen(true); }}
           onFocus={() => setIsOpen(true)}
-          className="pl-10 pr-4 h-12 rounded-xl bg-card border-border/50 shadow-soft text-base placeholder:text-muted-foreground/60 focus-visible:ring-accent/50"
+          className="pl-10 pr-4 h-10 sm:h-12 rounded-xl bg-card border-border/50 shadow-soft text-sm sm:text-base placeholder:text-muted-foreground/60 focus-visible:ring-accent/50"
         />
         {query && (
           <button
@@ -111,36 +97,23 @@ export const CountrySearch = memo(function CountrySearch({ onCountrySelect, clas
         )}
       </div>
 
-      {/* Dropdown results */}
       {isOpen && (
-        <div className="absolute z-50 top-full mt-2 w-full max-h-80 overflow-y-auto rounded-xl border border-border/50 bg-card shadow-lg animate-fade-in">
+        <div className="absolute z-50 top-full mt-1 w-full max-h-60 sm:max-h-80 overflow-y-auto rounded-xl border border-border/50 bg-card shadow-lg animate-fade-in">
           {filtered.length === 0 ? (
-            <div className="px-4 py-8 text-center text-muted-foreground text-sm">
+            <div className="px-4 py-6 text-center text-muted-foreground text-xs sm:text-sm">
               No country found for "{query}"
             </div>
           ) : (
             <div className="p-1">
               {filtered.map((item) => (
-                <CountryItem
-                  key={item.country}
-                  country={item.country}
-                  language={item.language}
-                  flag={item.flag}
-                  onSelect={() => handleSelect(item)}
-                />
+                <CountryItem key={item.country} country={item.country} language={item.language} flag={item.flag} onSelect={() => handleSelect(item)} />
               ))}
             </div>
           )}
         </div>
       )}
 
-      {/* Backdrop to close dropdown */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
+      {isOpen && <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />}
     </div>
   );
 });
