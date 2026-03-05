@@ -19,6 +19,7 @@ export function TranslationView() {
     targetLanguage,
     setTargetLanguage,
     isLoading,
+    translationSource,
     swapLanguages,
   } = useTranslation();
 
@@ -106,6 +107,7 @@ export function TranslationView() {
           languageName={targetLang.name}
           languageFlag={targetLang.flag}
           isLoading={isLoading}
+          translationSource={translationSource}
           readOnly
         />
       </div>

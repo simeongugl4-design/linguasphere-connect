@@ -20,11 +20,13 @@ export function useTranslation() {
   const [sourceLanguage, setSourceLanguage] = useState("auto");
   const [targetLanguage, setTargetLanguage] = useState("es");
   const [isLoading, setIsLoading] = useState(false);
+  const [translationSource, setTranslationSource] = useState<"cache" | "live" | null>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   const translate = useCallback(async (text: string, source: string, target: string) => {
     if (!text.trim()) {
       setTranslatedText("");
+      setTranslationSource(null);
       return;
     }
 
@@ -34,6 +36,7 @@ export function useTranslation() {
       const cached = await getCachedTranslation(text, source, target);
       if (cached) {
         setTranslatedText(cached);
+        setTranslationSource("cache");
         setIsLoading(false);
         return;
       }
@@ -62,7 +65,7 @@ export function useTranslation() {
 
       if (data?.translatedText) {
         setTranslatedText(data.translatedText);
-        // Cache the result
+        setTranslationSource("live");
         await cacheTranslation(text, source, target, data.translatedText);
       }
     } catch (err) {
@@ -77,7 +80,7 @@ export function useTranslation() {
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (!sourceText.trim()) { setTranslatedText(""); return; }
+    if (!sourceText.trim()) { setTranslatedText(""); setTranslationSource(null); return; }
     debounceRef.current = setTimeout(() => {
       translate(sourceText, sourceLanguage, targetLanguage);
     }, 150);
@@ -98,6 +101,7 @@ export function useTranslation() {
   const clearAll = useCallback(() => {
     setSourceText("");
     setTranslatedText("");
+    setTranslationSource(null);
   }, []);
 
   return {
@@ -109,6 +113,7 @@ export function useTranslation() {
     targetLanguage,
     setTargetLanguage,
     isLoading,
+    translationSource,
     swapLanguages,
     clearAll,
     translate,

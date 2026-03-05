@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { Mic, MicOff, Volume2, Copy, Check, X, Loader2 } from "lucide-react";
+import { Mic, MicOff, Volume2, Copy, Check, X, Loader2, Database, Zap } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -16,6 +17,7 @@ interface TranslationPanelProps {
   onVoiceInput?: () => void;
   isRecording?: boolean;
   readOnly?: boolean;
+  translationSource?: "cache" | "live" | null;
 }
 
 export function TranslationPanel({
@@ -29,6 +31,7 @@ export function TranslationPanel({
   onVoiceInput,
   isRecording = false,
   readOnly = false,
+  translationSource,
 }: TranslationPanelProps) {
   const [copied, setCopied] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -86,6 +89,23 @@ export function TranslationPanel({
         <div className="flex items-center gap-1.5 sm:gap-2">
           <span className="text-lg sm:text-xl">{languageFlag}</span>
           <span className="font-medium text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">{languageName}</span>
+          {translationSource && text && (
+            <Badge
+              variant="outline"
+              className={cn(
+                "text-[9px] sm:text-[10px] px-1.5 py-0 h-4 sm:h-5 font-medium gap-0.5 animate-fade-in",
+                translationSource === "cache"
+                  ? "border-accent/40 text-accent bg-accent/10"
+                  : "border-primary/40 text-primary bg-primary/10"
+              )}
+            >
+              {translationSource === "cache" ? (
+                <><Database className="h-2.5 w-2.5" /> Cached</>
+              ) : (
+                <><Zap className="h-2.5 w-2.5" /> Live</>
+              )}
+            </Badge>
+          )}
         </div>
         <div className="flex items-center gap-0.5 sm:gap-1">
           {type === "source" && onVoiceInput && (
