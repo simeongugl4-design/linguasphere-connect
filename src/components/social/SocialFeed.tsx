@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PostCard } from "./PostCard";
+import { StoriesBar } from "./StoriesBar";
 import { Loader2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -96,6 +97,9 @@ export function SocialFeed() {
 
   return (
     <div className="space-y-4">
+      {/* Stories */}
+      <StoriesBar />
+
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Global Feed</h2>
         <Button
