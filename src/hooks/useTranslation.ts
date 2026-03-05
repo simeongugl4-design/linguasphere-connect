@@ -1,6 +1,12 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import {
+  cacheTranslation,
+  getCachedTranslation,
+  addPendingTranslation,
+  isOnline,
+} from "@/lib/offlineStorage";
 
 interface TranslationResult {
   translatedText: string;
@@ -24,6 +30,22 @@ export function useTranslation() {
 
     setIsLoading(true);
     try {
+      // Check cache first
+      const cached = await getCachedTranslation(text, source, target);
+      if (cached) {
+        setTranslatedText(cached);
+        setIsLoading(false);
+        return;
+      }
+
+      // If offline, queue and notify
+      if (!isOnline()) {
+        await addPendingTranslation(text, source, target);
+        toast.info("You're offline. Translation queued for later.");
+        setIsLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke<TranslationResult>("translate", {
         body: {
           text: text.trim(),
@@ -40,35 +62,26 @@ export function useTranslation() {
 
       if (data?.translatedText) {
         setTranslatedText(data.translatedText);
+        // Cache the result
+        await cacheTranslation(text, source, target, data.translatedText);
       }
     } catch (err) {
       console.error("Translation error:", err);
-      toast.error("Failed to translate. Please try again.");
+      // On network failure, queue for later
+      await addPendingTranslation(text, source, target);
+      toast.error("Translation failed. Queued for when you're back online.");
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // Debounced translation
   useEffect(() => {
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-
-    if (!sourceText.trim()) {
-      setTranslatedText("");
-      return;
-    }
-
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!sourceText.trim()) { setTranslatedText(""); return; }
     debounceRef.current = setTimeout(() => {
       translate(sourceText, sourceLanguage, targetLanguage);
     }, 150);
-
-    return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
-    };
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [sourceText, sourceLanguage, targetLanguage, translate]);
 
   const swapLanguages = useCallback(() => {
@@ -76,7 +89,6 @@ export function useTranslation() {
       toast.info("Cannot swap when source is auto-detect");
       return;
     }
-
     setSourceLanguage(targetLanguage);
     setTargetLanguage(sourceLanguage);
     setSourceText(translatedText);
