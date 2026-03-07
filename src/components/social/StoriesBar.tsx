@@ -236,7 +236,15 @@ export function StoriesBar() {
     setActiveGroup(groupIndex);
     setActiveStoryIndex(0);
     setShowViewer(true);
+    setShowReactions(false);
   };
+
+  // Fetch reactions when active story changes
+  useEffect(() => {
+    if (showViewer && groupedStories[activeGroup]?.stories[activeStoryIndex]) {
+      fetchReactions(groupedStories[activeGroup].stories[activeStoryIndex].id);
+    }
+  }, [showViewer, activeGroup, activeStoryIndex]);
 
   const nextStory = () => {
     const group = groupedStories[activeGroup];
