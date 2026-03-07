@@ -260,6 +260,27 @@ export function StoriesBar() {
     setViewCounts((prev) => ({ ...prev, [storyId]: count || 0 }));
   };
 
+  const fetchViewers = async (storyId: string) => {
+    const { data } = await supabase
+      .from("story_views")
+      .select("viewer_id, viewed_at")
+      .eq("story_id", storyId)
+      .order("viewed_at", { ascending: false });
+    if (!data) return;
+
+    const viewerProfiles = await Promise.all(
+      data.map(async (v: { viewer_id: string; viewed_at: string }) => {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("username, display_name, avatar_url")
+          .eq("user_id", v.viewer_id)
+          .single();
+        return { ...v, username: profile?.username || null, display_name: profile?.display_name || null, avatar_url: profile?.avatar_url || null };
+      })
+    );
+    setViewers((prev) => ({ ...prev, [storyId]: viewerProfiles }));
+  };
+
   // Fetch reactions/views and record view when active story changes
   useEffect(() => {
     if (showViewer && groupedStories[activeGroup]?.stories[activeStoryIndex]) {
