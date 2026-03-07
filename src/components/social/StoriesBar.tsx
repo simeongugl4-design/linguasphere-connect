@@ -52,6 +52,12 @@ export function StoriesBar() {
   const [posting, setPosting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Reaction state
+  const REACTION_EMOJIS = ["❤️", "😂", "😮", "😢", "🔥", "👏"];
+  const [reactions, setReactions] = useState<Record<string, { emoji: string; count: number }[]>>({});
+  const [myReaction, setMyReaction] = useState<Record<string, string | null>>({});
+  const [showReactions, setShowReactions] = useState(false);
+
   const fetchStories = async () => {
     try {
       const { data, error } = await supabase
@@ -182,11 +188,63 @@ export function StoriesBar() {
     } catch { toast.error("Failed to delete story"); }
   };
 
+  const fetchReactions = async (storyId: string) => {
+    const { data } = await supabase
+      .from("story_reactions")
+      .select("emoji, user_id")
+      .eq("story_id", storyId);
+    if (!data) return;
+
+    const counts: Record<string, number> = {};
+    let mine: string | null = null;
+    data.forEach((r: { emoji: string; user_id: string }) => {
+      counts[r.emoji] = (counts[r.emoji] || 0) + 1;
+      if (r.user_id === user?.id) mine = r.emoji;
+    });
+
+    setReactions((prev) => ({
+      ...prev,
+      [storyId]: Object.entries(counts).map(([emoji, count]) => ({ emoji, count })),
+    }));
+    setMyReaction((prev) => ({ ...prev, [storyId]: mine }));
+  };
+
+  const handleReact = async (storyId: string, emoji: string) => {
+    if (!user) { toast.error("Sign in to react"); return; }
+
+    const current = myReaction[storyId];
+    try {
+      if (current === emoji) {
+        // Remove reaction
+        await supabase.from("story_reactions").delete().eq("story_id", storyId).eq("user_id", user.id);
+        setMyReaction((prev) => ({ ...prev, [storyId]: null }));
+      } else if (current) {
+        // Update reaction
+        await supabase.from("story_reactions").update({ emoji }).eq("story_id", storyId).eq("user_id", user.id);
+        setMyReaction((prev) => ({ ...prev, [storyId]: emoji }));
+      } else {
+        // Insert reaction
+        await supabase.from("story_reactions").insert({ story_id: storyId, user_id: user.id, emoji });
+        setMyReaction((prev) => ({ ...prev, [storyId]: emoji }));
+      }
+      fetchReactions(storyId);
+      setShowReactions(false);
+    } catch { toast.error("Failed to react"); }
+  };
+
   const openStoryGroup = (groupIndex: number) => {
     setActiveGroup(groupIndex);
     setActiveStoryIndex(0);
     setShowViewer(true);
+    setShowReactions(false);
   };
+
+  // Fetch reactions when active story changes
+  useEffect(() => {
+    if (showViewer && groupedStories[activeGroup]?.stories[activeStoryIndex]) {
+      fetchReactions(groupedStories[activeGroup].stories[activeStoryIndex].id);
+    }
+  }, [showViewer, activeGroup, activeStoryIndex]);
 
   const nextStory = () => {
     const group = groupedStories[activeGroup];
@@ -505,13 +563,62 @@ export function StoriesBar() {
                 )}
               </div>
 
+              {/* Reaction Bar */}
+              <div className="absolute bottom-2 left-0 right-0 z-30 flex flex-col items-center gap-2 px-4">
+                {/* Existing reactions display */}
+                {reactions[currentStory.id]?.length > 0 && (
+                  <div className="flex gap-1.5 bg-black/40 backdrop-blur-sm rounded-full px-3 py-1.5">
+                    {reactions[currentStory.id].map((r) => (
+                      <button
+                        key={r.emoji}
+                        onClick={() => handleReact(currentStory.id, r.emoji)}
+                        className={cn(
+                          "flex items-center gap-0.5 text-sm transition-transform hover:scale-110",
+                          myReaction[currentStory.id] === r.emoji && "scale-110"
+                        )}
+                      >
+                        <span>{r.emoji}</span>
+                        <span className="text-[10px] text-white/80">{r.count}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Emoji picker toggle */}
+                {showReactions ? (
+                  <div className="flex gap-2 bg-black/60 backdrop-blur-md rounded-full px-4 py-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                    {REACTION_EMOJIS.map((emoji) => (
+                      <button
+                        key={emoji}
+                        onClick={() => handleReact(currentStory.id, emoji)}
+                        className={cn(
+                          "text-2xl transition-transform hover:scale-125 active:scale-90",
+                          myReaction[currentStory.id] === emoji && "scale-125 ring-2 ring-white/40 rounded-full"
+                        )}
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-white/70 hover:text-white hover:bg-white/10 text-xs gap-1"
+                    onClick={() => setShowReactions(true)}
+                  >
+                    😊 React
+                  </Button>
+                )}
+              </div>
+
               {/* Navigation areas */}
               <button
-                className="absolute left-0 top-16 bottom-16 w-1/3 z-20"
+                className="absolute left-0 top-16 bottom-24 w-1/3 z-20"
                 onClick={prevStory}
               />
               <button
-                className="absolute right-0 top-16 bottom-16 w-1/3 z-20"
+                className="absolute right-0 top-16 bottom-24 w-1/3 z-20"
                 onClick={nextStory}
               />
             </div>
