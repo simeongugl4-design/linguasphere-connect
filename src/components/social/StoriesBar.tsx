@@ -64,6 +64,9 @@ export function StoriesBar() {
   const [viewers, setViewers] = useState<Record<string, { viewer_id: string; username: string | null; display_name: string | null; avatar_url: string | null; viewed_at: string }[]>>({});
   const [showViewers, setShowViewers] = useState(false);
 
+  // Reply state
+  const [replyText, setReplyText] = useState("");
+  const [sendingReply, setSendingReply] = useState(false);
   const fetchStories = async () => {
     try {
       const { data, error } = await supabase
