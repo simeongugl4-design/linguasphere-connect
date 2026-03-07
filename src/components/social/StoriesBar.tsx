@@ -188,6 +188,50 @@ export function StoriesBar() {
     } catch { toast.error("Failed to delete story"); }
   };
 
+  const fetchReactions = async (storyId: string) => {
+    const { data } = await supabase
+      .from("story_reactions")
+      .select("emoji, user_id")
+      .eq("story_id", storyId);
+    if (!data) return;
+
+    const counts: Record<string, number> = {};
+    let mine: string | null = null;
+    data.forEach((r: { emoji: string; user_id: string }) => {
+      counts[r.emoji] = (counts[r.emoji] || 0) + 1;
+      if (r.user_id === user?.id) mine = r.emoji;
+    });
+
+    setReactions((prev) => ({
+      ...prev,
+      [storyId]: Object.entries(counts).map(([emoji, count]) => ({ emoji, count })),
+    }));
+    setMyReaction((prev) => ({ ...prev, [storyId]: mine }));
+  };
+
+  const handleReact = async (storyId: string, emoji: string) => {
+    if (!user) { toast.error("Sign in to react"); return; }
+
+    const current = myReaction[storyId];
+    try {
+      if (current === emoji) {
+        // Remove reaction
+        await supabase.from("story_reactions").delete().eq("story_id", storyId).eq("user_id", user.id);
+        setMyReaction((prev) => ({ ...prev, [storyId]: null }));
+      } else if (current) {
+        // Update reaction
+        await supabase.from("story_reactions").update({ emoji }).eq("story_id", storyId).eq("user_id", user.id);
+        setMyReaction((prev) => ({ ...prev, [storyId]: emoji }));
+      } else {
+        // Insert reaction
+        await supabase.from("story_reactions").insert({ story_id: storyId, user_id: user.id, emoji });
+        setMyReaction((prev) => ({ ...prev, [storyId]: emoji }));
+      }
+      fetchReactions(storyId);
+      setShowReactions(false);
+    } catch { toast.error("Failed to react"); }
+  };
+
   const openStoryGroup = (groupIndex: number) => {
     setActiveGroup(groupIndex);
     setActiveStoryIndex(0);
