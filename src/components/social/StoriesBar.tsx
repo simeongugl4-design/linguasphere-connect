@@ -241,6 +241,52 @@ export function StoriesBar() {
     } catch { toast.error("Failed to react"); }
   };
 
+  const handleReplyToStory = async (storyOwnerId: string) => {
+    if (!user || !replyText.trim()) return;
+    if (storyOwnerId === user.id) { toast.error("Can't reply to your own story"); return; }
+
+    setSendingReply(true);
+    try {
+      // Find or create conversation
+      const { data: existing } = await supabase
+        .from("conversations")
+        .select("id")
+        .or(`and(participant_1.eq.${user.id},participant_2.eq.${storyOwnerId}),and(participant_1.eq.${storyOwnerId},participant_2.eq.${user.id})`)
+        .maybeSingle();
+
+      let conversationId: string;
+      if (existing) {
+        conversationId = existing.id;
+      } else {
+        const { data: newConvo, error } = await supabase
+          .from("conversations")
+          .insert({ participant_1: user.id, participant_2: storyOwnerId })
+          .select("id")
+          .single();
+        if (error || !newConvo) throw error;
+        conversationId = newConvo.id;
+      }
+
+      // Send the reply as a DM
+      const { error: msgError } = await supabase.from("messages").insert({
+        conversation_id: conversationId,
+        sender_id: user.id,
+        content: `📖 Replied to your story: "${replyText.trim()}"`,
+      });
+      if (msgError) throw msgError;
+
+      // Update conversation timestamp
+      await supabase.from("conversations").update({ last_message_at: new Date().toISOString() }).eq("id", conversationId);
+
+      toast.success("Reply sent as a message!");
+      setReplyText("");
+    } catch {
+      toast.error("Failed to send reply");
+    } finally {
+      setSendingReply(false);
+    }
+  };
+
   const openStoryGroup = (groupIndex: number) => {
     setActiveGroup(groupIndex);
     setActiveStoryIndex(0);
