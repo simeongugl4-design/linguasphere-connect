@@ -60,6 +60,8 @@ export function StoriesBar() {
 
   // View count state
   const [viewCounts, setViewCounts] = useState<Record<string, number>>({});
+  const [viewers, setViewers] = useState<Record<string, { viewer_id: string; username: string | null; display_name: string | null; avatar_url: string | null; viewed_at: string }[]>>({});
+  const [showViewers, setShowViewers] = useState(false);
 
   const fetchStories = async () => {
     try {
