@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Plus, X, ChevronLeft, ChevronRight, Loader2, Image, Type, Trash2 } from "lucide-react";
+import { Plus, X, ChevronLeft, ChevronRight, Loader2, Image, Type, Trash2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
