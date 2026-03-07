@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Plus, X, ChevronLeft, ChevronRight, Loader2, Image, Type, Trash2 } from "lucide-react";
+import { Plus, X, ChevronLeft, ChevronRight, Loader2, Image, Type, Trash2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -57,6 +57,9 @@ export function StoriesBar() {
   const [reactions, setReactions] = useState<Record<string, { emoji: string; count: number }[]>>({});
   const [myReaction, setMyReaction] = useState<Record<string, string | null>>({});
   const [showReactions, setShowReactions] = useState(false);
+
+  // View count state
+  const [viewCounts, setViewCounts] = useState<Record<string, number>>({});
 
   const fetchStories = async () => {
     try {
@@ -239,10 +242,29 @@ export function StoriesBar() {
     setShowReactions(false);
   };
 
-  // Fetch reactions when active story changes
+  const recordView = async (storyId: string) => {
+    if (!user) return;
+    await supabase.from("story_views").upsert(
+      { story_id: storyId, viewer_id: user.id },
+      { onConflict: "story_id,viewer_id" }
+    );
+  };
+
+  const fetchViewCount = async (storyId: string) => {
+    const { count } = await supabase
+      .from("story_views")
+      .select("*", { count: "exact", head: true })
+      .eq("story_id", storyId);
+    setViewCounts((prev) => ({ ...prev, [storyId]: count || 0 }));
+  };
+
+  // Fetch reactions/views and record view when active story changes
   useEffect(() => {
     if (showViewer && groupedStories[activeGroup]?.stories[activeStoryIndex]) {
-      fetchReactions(groupedStories[activeGroup].stories[activeStoryIndex].id);
+      const storyId = groupedStories[activeGroup].stories[activeStoryIndex].id;
+      fetchReactions(storyId);
+      fetchViewCount(storyId);
+      recordView(storyId);
     }
   }, [showViewer, activeGroup, activeStoryIndex]);
 
@@ -515,7 +537,14 @@ export function StoriesBar() {
                   </Avatar>
                   <div>
                     <p className="text-white text-xs font-semibold">{currentGroup.display_name || currentGroup.username}</p>
-                    <p className="text-white/60 text-[10px]">{timeAgo(currentStory.created_at)}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-white/60 text-[10px]">{timeAgo(currentStory.created_at)}</p>
+                      {currentStory.user_id === user?.id && viewCounts[currentStory.id] !== undefined && (
+                        <span className="flex items-center gap-0.5 text-white/60 text-[10px]">
+                          <Eye className="h-3 w-3" /> {viewCounts[currentStory.id]}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
