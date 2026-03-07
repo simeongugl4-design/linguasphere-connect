@@ -60,6 +60,8 @@ export function StoriesBar() {
 
   // View count state
   const [viewCounts, setViewCounts] = useState<Record<string, number>>({});
+  const [viewers, setViewers] = useState<Record<string, { viewer_id: string; username: string | null; display_name: string | null; avatar_url: string | null; viewed_at: string }[]>>({});
+  const [showViewers, setShowViewers] = useState(false);
 
   const fetchStories = async () => {
     try {
@@ -256,6 +258,27 @@ export function StoriesBar() {
       .select("*", { count: "exact", head: true })
       .eq("story_id", storyId);
     setViewCounts((prev) => ({ ...prev, [storyId]: count || 0 }));
+  };
+
+  const fetchViewers = async (storyId: string) => {
+    const { data } = await supabase
+      .from("story_views")
+      .select("viewer_id, viewed_at")
+      .eq("story_id", storyId)
+      .order("viewed_at", { ascending: false });
+    if (!data) return;
+
+    const viewerProfiles = await Promise.all(
+      data.map(async (v: { viewer_id: string; viewed_at: string }) => {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("username, display_name, avatar_url")
+          .eq("user_id", v.viewer_id)
+          .single();
+        return { ...v, username: profile?.username || null, display_name: profile?.display_name || null, avatar_url: profile?.avatar_url || null };
+      })
+    );
+    setViewers((prev) => ({ ...prev, [storyId]: viewerProfiles }));
   };
 
   // Fetch reactions/views and record view when active story changes
@@ -540,9 +563,12 @@ export function StoriesBar() {
                     <div className="flex items-center gap-2">
                       <p className="text-white/60 text-[10px]">{timeAgo(currentStory.created_at)}</p>
                       {currentStory.user_id === user?.id && viewCounts[currentStory.id] !== undefined && (
-                        <span className="flex items-center gap-0.5 text-white/60 text-[10px]">
+                        <button
+                          onClick={() => { fetchViewers(currentStory.id); setShowViewers((v) => !v); }}
+                          className="flex items-center gap-0.5 text-white/60 text-[10px] hover:text-white/90 transition-colors"
+                        >
                           <Eye className="h-3 w-3" /> {viewCounts[currentStory.id]}
-                        </span>
+                        </button>
                       )}
                     </div>
                   </div>
@@ -591,6 +617,40 @@ export function StoriesBar() {
                   </p>
                 )}
               </div>
+
+              {/* Viewers Panel */}
+              {showViewers && currentStory.user_id === user?.id && (
+                <div className="absolute inset-0 z-40 bg-black/80 backdrop-blur-sm flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-200">
+                  <div className="flex items-center justify-between px-4 pt-4 pb-2">
+                    <h3 className="text-white text-sm font-semibold flex items-center gap-1.5">
+                      <Eye className="h-4 w-4" /> Viewers ({viewCounts[currentStory.id] || 0})
+                    </h3>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-white/20" onClick={() => setShowViewers(false)}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-2">
+                    {(viewers[currentStory.id] || []).length === 0 ? (
+                      <p className="text-white/50 text-xs text-center py-8">No views yet</p>
+                    ) : (
+                      (viewers[currentStory.id] || []).map((v) => (
+                        <div key={v.viewer_id} className="flex items-center gap-3 py-1.5">
+                          <Avatar className="w-8 h-8 border border-white/20">
+                            <AvatarImage src={v.avatar_url || undefined} />
+                            <AvatarFallback className="text-[10px] text-white bg-white/10">
+                              {(v.display_name || v.username || "?")[0]?.toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-white text-xs font-medium truncate">{v.display_name || v.username || "User"}</p>
+                            <p className="text-white/40 text-[10px]">{timeAgo(v.viewed_at)}</p>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Reaction Bar */}
               <div className="absolute bottom-2 left-0 right-0 z-30 flex flex-col items-center gap-2 px-4">
