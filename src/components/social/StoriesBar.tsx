@@ -58,6 +58,9 @@ export function StoriesBar() {
   const [myReaction, setMyReaction] = useState<Record<string, string | null>>({});
   const [showReactions, setShowReactions] = useState(false);
 
+  // View count state
+  const [viewCounts, setViewCounts] = useState<Record<string, number>>({});
+
   const fetchStories = async () => {
     try {
       const { data, error } = await supabase
