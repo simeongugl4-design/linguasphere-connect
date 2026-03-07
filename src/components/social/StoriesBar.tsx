@@ -52,6 +52,12 @@ export function StoriesBar() {
   const [posting, setPosting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Reaction state
+  const REACTION_EMOJIS = ["❤️", "😂", "😮", "😢", "🔥", "👏"];
+  const [reactions, setReactions] = useState<Record<string, { emoji: string; count: number }[]>>({});
+  const [myReaction, setMyReaction] = useState<Record<string, string | null>>({});
+  const [showReactions, setShowReactions] = useState(false);
+
   const fetchStories = async () => {
     try {
       const { data, error } = await supabase
