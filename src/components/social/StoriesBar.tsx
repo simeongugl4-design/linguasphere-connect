@@ -242,10 +242,29 @@ export function StoriesBar() {
     setShowReactions(false);
   };
 
-  // Fetch reactions when active story changes
+  const recordView = async (storyId: string) => {
+    if (!user) return;
+    await supabase.from("story_views").upsert(
+      { story_id: storyId, viewer_id: user.id },
+      { onConflict: "story_id,viewer_id" }
+    );
+  };
+
+  const fetchViewCount = async (storyId: string) => {
+    const { count } = await supabase
+      .from("story_views")
+      .select("*", { count: "exact", head: true })
+      .eq("story_id", storyId);
+    setViewCounts((prev) => ({ ...prev, [storyId]: count || 0 }));
+  };
+
+  // Fetch reactions/views and record view when active story changes
   useEffect(() => {
     if (showViewer && groupedStories[activeGroup]?.stories[activeStoryIndex]) {
-      fetchReactions(groupedStories[activeGroup].stories[activeStoryIndex].id);
+      const storyId = groupedStories[activeGroup].stories[activeStoryIndex].id;
+      fetchReactions(storyId);
+      fetchViewCount(storyId);
+      recordView(storyId);
     }
   }, [showViewer, activeGroup, activeStoryIndex]);
 
