@@ -740,14 +740,37 @@ export function StoriesBar() {
                     ))}
                   </div>
                 ) : (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-white/70 hover:text-white hover:bg-white/10 text-xs gap-1"
-                    onClick={() => setShowReactions(true)}
-                  >
-                    😊 React
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-white/70 hover:text-white hover:bg-white/10 text-xs gap-1"
+                      onClick={() => setShowReactions(true)}
+                    >
+                      😊 React
+                    </Button>
+                  </div>
+                )}
+
+                {/* Reply input (only for other users' stories) */}
+                {currentStory.user_id !== user?.id && user && (
+                  <div className="flex items-center gap-2 w-full max-w-sm">
+                    <Input
+                      placeholder="Reply to this story..."
+                      value={replyText}
+                      onChange={(e) => setReplyText(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleReplyToStory(currentStory.user_id)}
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/40 text-xs h-9"
+                    />
+                    <Button
+                      size="icon"
+                      className="h-9 w-9 shrink-0"
+                      disabled={!replyText.trim() || sendingReply}
+                      onClick={() => handleReplyToStory(currentStory.user_id)}
+                    >
+                      {sendingReply ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    </Button>
+                  </div>
                 )}
               </div>
 
