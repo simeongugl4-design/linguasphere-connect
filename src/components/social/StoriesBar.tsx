@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Plus, X, ChevronLeft, ChevronRight, Loader2, Image, Type, Trash2, Eye } from "lucide-react";
+import { Plus, X, ChevronLeft, ChevronRight, Loader2, Image, Type, Trash2, Eye, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -63,6 +64,9 @@ export function StoriesBar() {
   const [viewers, setViewers] = useState<Record<string, { viewer_id: string; username: string | null; display_name: string | null; avatar_url: string | null; viewed_at: string }[]>>({});
   const [showViewers, setShowViewers] = useState(false);
 
+  // Reply state
+  const [replyText, setReplyText] = useState("");
+  const [sendingReply, setSendingReply] = useState(false);
   const fetchStories = async () => {
     try {
       const { data, error } = await supabase
@@ -235,6 +239,52 @@ export function StoriesBar() {
       fetchReactions(storyId);
       setShowReactions(false);
     } catch { toast.error("Failed to react"); }
+  };
+
+  const handleReplyToStory = async (storyOwnerId: string) => {
+    if (!user || !replyText.trim()) return;
+    if (storyOwnerId === user.id) { toast.error("Can't reply to your own story"); return; }
+
+    setSendingReply(true);
+    try {
+      // Find or create conversation
+      const { data: existing } = await supabase
+        .from("conversations")
+        .select("id")
+        .or(`and(participant_1.eq.${user.id},participant_2.eq.${storyOwnerId}),and(participant_1.eq.${storyOwnerId},participant_2.eq.${user.id})`)
+        .maybeSingle();
+
+      let conversationId: string;
+      if (existing) {
+        conversationId = existing.id;
+      } else {
+        const { data: newConvo, error } = await supabase
+          .from("conversations")
+          .insert({ participant_1: user.id, participant_2: storyOwnerId })
+          .select("id")
+          .single();
+        if (error || !newConvo) throw error;
+        conversationId = newConvo.id;
+      }
+
+      // Send the reply as a DM
+      const { error: msgError } = await supabase.from("messages").insert({
+        conversation_id: conversationId,
+        sender_id: user.id,
+        content: `📖 Replied to your story: "${replyText.trim()}"`,
+      });
+      if (msgError) throw msgError;
+
+      // Update conversation timestamp
+      await supabase.from("conversations").update({ last_message_at: new Date().toISOString() }).eq("id", conversationId);
+
+      toast.success("Reply sent as a message!");
+      setReplyText("");
+    } catch {
+      toast.error("Failed to send reply");
+    } finally {
+      setSendingReply(false);
+    }
   };
 
   const openStoryGroup = (groupIndex: number) => {
@@ -690,14 +740,37 @@ export function StoriesBar() {
                     ))}
                   </div>
                 ) : (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-white/70 hover:text-white hover:bg-white/10 text-xs gap-1"
-                    onClick={() => setShowReactions(true)}
-                  >
-                    😊 React
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-white/70 hover:text-white hover:bg-white/10 text-xs gap-1"
+                      onClick={() => setShowReactions(true)}
+                    >
+                      😊 React
+                    </Button>
+                  </div>
+                )}
+
+                {/* Reply input (only for other users' stories) */}
+                {currentStory.user_id !== user?.id && user && (
+                  <div className="flex items-center gap-2 w-full max-w-sm">
+                    <Input
+                      placeholder="Reply to this story..."
+                      value={replyText}
+                      onChange={(e) => setReplyText(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleReplyToStory(currentStory.user_id)}
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/40 text-xs h-9"
+                    />
+                    <Button
+                      size="icon"
+                      className="h-9 w-9 shrink-0"
+                      disabled={!replyText.trim() || sendingReply}
+                      onClick={() => handleReplyToStory(currentStory.user_id)}
+                    >
+                      {sendingReply ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    </Button>
+                  </div>
                 )}
               </div>
 
