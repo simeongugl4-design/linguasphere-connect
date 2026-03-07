@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Plus, X, ChevronLeft, ChevronRight, Loader2, Image, Type, Trash2, Eye, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
