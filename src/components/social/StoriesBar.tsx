@@ -563,9 +563,12 @@ export function StoriesBar() {
                     <div className="flex items-center gap-2">
                       <p className="text-white/60 text-[10px]">{timeAgo(currentStory.created_at)}</p>
                       {currentStory.user_id === user?.id && viewCounts[currentStory.id] !== undefined && (
-                        <span className="flex items-center gap-0.5 text-white/60 text-[10px]">
+                        <button
+                          onClick={() => { fetchViewers(currentStory.id); setShowViewers((v) => !v); }}
+                          className="flex items-center gap-0.5 text-white/60 text-[10px] hover:text-white/90 transition-colors"
+                        >
                           <Eye className="h-3 w-3" /> {viewCounts[currentStory.id]}
-                        </span>
+                        </button>
                       )}
                     </div>
                   </div>
